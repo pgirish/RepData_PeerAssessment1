@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title>Loading and preprocessing the data</title>
+
+<script type="text/javascript">
+window.onload = function() {
+  var imgs = document.getElementsByTagName('img'), i, img;
+  for (i = 0; i < imgs.length; i++) {
+    img = imgs[i];
+    // center an image if it is the only element of its parent
+    if (img.parentElement.childElementCount === 1)
+      img.parentElement.style.textAlign = 'center';
+  }
+};
+</script>
+
+
+
+
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 13px;
+}
+
+body {
+  max-width: 800px;
+  margin: auto;
+  padding: 1em;
+  line-height: 20px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 {
+   font-size:2.2em;
+}
+
+h2 {
+   font-size:1.8em;
+}
+
+h3 {
+   font-size:1.4em;
+}
+
+h4 {
+   font-size:1.0em;
+}
+
+h5 {
+   font-size:0.9em;
+}
+
+h6 {
+   font-size:0.8em;
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre, img {
+  max-width: 100%;
+}
+pre {
+  overflow-x: auto;
+}
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code {
+  font-size: 92%;
+  border: 1px solid #ccc;
+}
+
+code[class] {
+  background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * {
+      background: transparent !important;
+      color: black !important;
+      filter:none !important;
+      -ms-filter: none !important;
+   }
+
+   body {
+      font-size:12pt;
+      max-width:100%;
+   }
+
+   a, a:visited {
+      text-decoration: underline;
+   }
+
+   hr {
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote {
+      padding-right: 1em;
+      page-break-inside: avoid;
+   }
+
+   tr, img {
+      page-break-inside: avoid;
+   }
+
+   img {
+      max-width: 100% !important;
+   }
+
+   @page :left {
+      margin: 15mm 20mm 15mm 10mm;
+   }
+
+   @page :right {
+      margin: 15mm 10mm 15mm 20mm;
+   }
+
+   p, h2, h3 {
+      orphans: 3; widows: 3;
+   }
+
+   h2, h3 {
+      page-break-after: avoid;
+   }
+}
+</style>
+
+
+
+</head>
+
+<body>
+<h2>Loading and preprocessing the data</h2>
+
+<h2>global chunk options are set</h2>
+
+<h2>opts_chunk$set() can change the default global options in a document</h2>
+
+<p>library(knitr)
+library(lubridate)
+opts_chunk$set(echo = TRUE, results = &#39;hold&#39;, message = FALSE, warning = FALSE)</p>
+
+<p>activity &lt;- read.csv(&ldquo;activity.csv&rdquo;)
+summary(activity)</p>
+
+<h2>What is mean total number of steps taken per day?</h2>
+
+<p>total.steps.perday &lt;- aggregate(steps~date, activity, sum, na.rm = TRUE)
+mean.total.steps.perday &lt;- mean(total.steps.perday$steps)</p>
+
+<p>median.total.steps.perday &lt;- median(total.steps.perday$steps)
+steps &lt;- total.steps.perday$steps</p>
+
+<h2>Make a histogram of the total number of steps taken each day</h2>
+
+<p>hist(steps, main=&ldquo;Total Steps Per Day&rdquo;, xlab=&ldquo;Total Steps taken Per Day&rdquo;,border=&ldquo;#ffffff&rdquo;, col=&ldquo;blue&rdquo;, lwd=0.4)</p>
+
+<h2>What is the average daily activity pattern?</h2>
+
+<p>steps.per.interval &lt;- aggregate(steps~interval, activity, mean, na.rm=TRUE)
+head(steps.per.interval)</p>
+
+<p>library(ggplot2)
+ggplot(steps.per.interval, aes(interval, steps)) + geom_line(colour=&ldquo;#000099&rdquo;) + labs(x=&ldquo;Interval&rdquo;, y =&ldquo;Number of Steps&rdquo;)</p>
+
+<p>##Which 5-minute interval, on average across all the days in the dataset, contains the ##maximum number of steps?<br/>
+interval.with.max.steps &lt;- steps.per.interval[which.max(steps.per.interval$steps),]</p>
+
+<p>##Calculate and report the total number of missing values in the dataset (i.e. the total ##number of rows with 𝙽𝙰s)
+total.missing.values &lt;- sum(is.na(activity$steps))
+head(total.missing.values)</p>
+
+<h2>Imputing missing values</h2>
+
+<p>new &lt;- function(x, y){
+    new.steps &lt;- x$steps
+    all.nas &lt;- which(is.na(new.steps))
+    for (a in all.nas){
+        intrvl &lt;- x[a,]$interval
+        avg.step &lt;- y[y$interval==intrvl,]$steps<br/>
+        new.steps[a] &lt;- avg.step
+    }
+    new.steps
+}</p>
+
+<p>new.steps &lt;- new(activity, steps.per.interval)
+activity2 &lt;- data.frame(steps = new.steps, date=activity$date, interval=activity$interval)</p>
+
+<h2>mean,median and  total number of steps taken per day with the new data set</h2>
+
+<p>new.total.steps.perday &lt;- aggregate(steps~date, activity2, sum, na.rm = TRUE)
+new.mean.total.steps.perday &lt;- mean(new.total.steps.perday$steps)
+new.median.total.steps.perday &lt;- median(new.total.steps.perday$steps)
+new.steps &lt;- new.total.steps.perday$steps</p>
+
+<p>nofill &lt;- hist(steps, breaks = seq(-250,21750,500), plot = FALSE)
+withfill &lt;- hist(new.steps, breaks = seq(-250,21750,500), plot = FALSE)
+plot(nofill, col=rgb(.1,.1,.1,alpha=0.8), xlim=c(-250,25000), ylim = c(0,12), main = &ldquo;&rdquo;,xlab=&ldquo;Average Total Number of Steps per Day&rdquo;) 
+plot(withfill, col=rgb(.2,.2,.2,alpha=0.5), xlim=c(-250,25000), ylim = c(0,12), add=T)</p>
+
+<p>#The impact of imputing missing data with the average number of steps in the same 5-min interval is that there is slight difference in both the mean and the median.</p>
+
+<p>##Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is ##a weekday or weekend day.
+library(lubridate)
+library(dplyr)
+weekdata &lt;- mutate(activity2, date = ymd(date), weekday = wday(date),day.type = ifelse(weekday != 1 &amp; weekday != 7,&ldquo;Weekday&rdquo;,ifelse(weekday == 1 | weekday == 7, &ldquo;Weekend&rdquo;, NA))) </p>
+
+<p>weekdata &lt;- mutate(weekdata, day.type = as.factor(day.type))</p>
+
+<p>##panelplot
+steps.interval.bydaytype &lt;- aggregate(steps~day.type+interval, weekdata, mean, na.rm=TRUE)
+ggplot(steps.interval.bydaytype, aes(x=interval, y=steps)) + 
+        geom_line(aes(group=1), colour=&ldquo;#000099&rdquo;) + 
+        facet_wrap(~ day.type, nrow=2, ncol=1) +
+        labs(x=&ldquo;Interval&rdquo;, y=&ldquo;Number of Steps&rdquo;) +
+        theme_grey()</p>
+
+</body>
+
+</html>
